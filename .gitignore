@@ -1,0 +1,37 @@
+# ignore all of this junk...
+
+.Rproj.user
+.Rhistory
+.RData
+class-text.pdf
+2016-fall-grades.xlsx
+*_old
+previous-semesters
+project-ideas
+r-intro
+resources
+figure
+final
+missing-homework-emails.md
+*syllabus*
+MS288 New Course ApplicationJanuary 2015 (1).docx
+notes
+grades
+*assignments*
+
+# uncomment these as you work on them...
+#week_1
+week_10
+week_11
+week_12
+week_13
+week_14
+week_15
+week_16
+week_2
+week_3
+week_4
+week_5
+week_6
+week_8
+week_9
