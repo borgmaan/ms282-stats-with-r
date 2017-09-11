@@ -1,0 +1,231 @@
+---
+title: "Week 3 Lab/Homework"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+# Lab
+
+This week's lab will showcase how we can use control flow elements to develop a simulation that allows us to explore a famous example of conditional probability. 
+
+## Let's Make a Deal
+
+The Monty Hall problem is a well-known puzzle in probability derived from an American game show, Let’s Make a Deal. (The original 1960s-era show was hosted by Monty Hall, giving this puzzle its name.) Intuition leads many people to get the puzzle wrong, and when the Monty Hall problem is presented in a newspaper or discussion list, it often leads to a lengthy argument in letters-to-the-editor and on message boards. [People get really mad about this](http://www.nytimes.com/1991/07/21/us/behind-monty-hall-s-doors-puzzle-debate-and-answer.html?pagewanted=all)!
+
+<div style="text-align:center">
+![monty](../images/lets-make-a-deal.jpg)
+</div>
+
+The game is played like this:
+
+1. The game show set has three doors. A prize such as a car or vacation is behind one door, and the other two doors hide a valueless prize called a Zonk; in most discussions of the problem, the Zonk is a goat.
+2. The contestant chooses one door. We’ll assume the contestant has no inside knowledge of which door holds the prize, so the contestant will just make a random choice.
+3. The smiling host Monty Hall opens one of the other doors, always choosing one that shows a goat, and always offers the contestant a chance to switch their choice to the remaining unopened door.
+4. The contestant either chooses to switch doors, or opts to stick with the first choice.
+5. Monty calls for the remaining two doors to open, and the contestant wins whatever is behind their chosen door.
+
+Let’s say a hypothetical contestant chooses door #2. Monty might then open door #1 and offer the chance to switch to door #3. The contestant switches to door #3, and then we see if the prize is behind #3.
+
+The puzzle is: what is the best strategy for the contestant? Does switching increase the chance of winning the car, decrease it, or make no difference?
+
+To the surprise of many, the best strategy is to make the switch. It’s possible to mathematically analyze the situation and figure this out, but instead we’ll tackle it by simulating thousands of games and measuring how often each strategy ends up winning.
+
+## Switching Simulation
+
+The code below will run a simulation to compute the expected probability of winning if one chooses  to switch doors. Take a moment to read through the code and the comments to understand how everything works. Once you understand what is going on, run the simulation code in your `R` console.
+
+```{r}
+# define variables we'll use throughout the simulation
+N  <-  10000 # the number games to simulate
+doors <- 1:3 # initialize the doors behind one of which is a good prize
+win <- 0 # to keep track of number of wins
+
+for (i in 1:N) {
+  prize <- sample(1:3, 1) # randomize which door has the good prize
+  guess <- sample(1:3, 1) # guess a door at random
+  
+  # Reveal one of the doors you didn't pick which has a bum prize
+  if (prize != guess) {
+    reveal <- doors[-c(prize, guess)] # show the remaining goat
+  } else {
+    reveal <- sample(doors[-c(prize, guess)], 1) # show one of 2 doors w/ goats
+  }
+  
+  # Switch 
+  select <- doors[-c(reveal, guess)]
+
+  # Count up your wins
+  if (select == prize) {
+    win <- win + 1
+  } 
+}
+
+```
+
+The approximate winning percentage of this strategy can be computed from our simulation results with the following code. Nuances of random number generation (which we'll discuss in a later class) might cause the number you get to be slightly different, but the difference should be very small. 
+
+```{r}
+(win / N) * 100
+```
+
+
+### 1) Your turn -- choosing to stay
+
+We'll need to compute the approximate winning percentage of the competing strategies -- i.e. always choosing to stay or choosing at random  -- to confirm that the switching strategy is actually superior. Take the code above and modify it to represent a scenario where the player never switches and chooses to stay with the door they originally chose. Copy and paste your modified code into your Word document along with a sentence that tells me the expected % of simulations "won" when the strategy was to always stick with the original choice. Also comment on how this percentage compares to the strategy of always switching doors.
+
+### 2) Your turn -- choosing at random
+
+Take the code above and modify it to represent a scenario where, after seeing Monty Hall open the door to show a goat, the player chooses randomly between the two remaining doors. Copy and paste your modified code into your Word document along with a sentence that tells me the expected % of simulations "won" when the strategy was to randomly choose between the remaining doors. Also comment on how this percentage compares to the strategy of always switching doors.
+
+
+### Math Reading
+
+Here's a good resource for those of you hoping to understand the math behind the simulation we just conducted: http://angrystatistician.blogspot.com/2012/06/bayes-solution-to-monty-hall.html
+
+
+************
+
+
+# Homework
+
+## New Functions
+
+### 3) Researching Some New Functions
+
+In this section you'll continue to expand your knowledge of the vast universe of useful built-in `R` functions. Look up the help pages for functions listed below. Look at the examples and run some of them **Write one sentence about what each function does**. Reminder: you can view the help page of a function by running `?function_name`.
+
+- `which`
+- `match`
+- `subset`
+- `split`
+- `paste`
+- `%in%`
+
+Note: you will have to run the following to look up the help page for `%in%`
+
+```
+?`%in%`
+```
+
+## Some Looping Exercises
+
+**For each of these exercises, copy and paste the code you wrote into your Word document. Also answer any questions that are asked.**
+
+### 4) Nested `for` Loops
+
+Use nested loops to make a multiplication table for the values from one to 10. Your result should be either a `data.frame` or a `matrix` that looks like this: 
+
+```{r, echo = F, results='asis'}
+mymat <- matrix(nrow=10, ncol=10) 
+
+for(i in 1:dim(mymat)[1]) {
+  for(j in 1:dim(mymat)[2]) {
+    mymat[i,j] = i * j # assign values based on position: product of two indexes
+  }
+}
+
+knitr::kable(data.frame(mymat))
+
+```
+
+### 5) Data Cleaning With `for` Loops
+
+A collaborator has shared some data with you for analysis. You can download the data from [here](https://courses.aquinas.edu/mod/resource/view.php?id=99101). Be sure to remember where you downloaded it, and use the `load` function covered in a previous class to load the `data.frame` `expt` into your workspace. 
+
+Any *missing* value in `expt` has been coded as `-999`. Loop over all the rows and columns of the data set and replace all `-999` values with `R`'s native missing data type, `NA`. Use a counter variable to keep track of how many values you replace. Copy and paste your `for` loop into the word document. **How many values did you replace?**
+
+
+### 6) Calculating Factorials With `for` Loops
+
+Use a `for` loop to calculate 10! (i.e. 10 * 9 * 8 * 7 *...)
+
+
+### 7) Sum `while` Loops
+
+Write some lines of code (including a `while` loop) that will figure out how many terms in the sum `1 + 2 + 3 + ...` are needed for the sum to exceed one million.
+
+
+### 8) Calculating Factorials With `while` Loops
+
+ Use a `while` loop to calculate 10! (i.e. 10 * 9 * 8 * 7 *...)
+
+
+
+## Apply Exercises
+
+### 9) `apply`
+
+First, run the code below that uses `seq` to create a 20 row, 10 column matrix filled with the first 200 positive even numbers.
+
+```{r}
+mat <- matrix(seq(from = 2, by = 2, length.out = 200), nrow = 20, ncol = 10)
+```
+
+Remember, `apply` lets us *apply* a function to rows or columns of a matrix (or other dimensions of an array). We saw in the lecture that we can replicate the `colSums` function using `apply` like so:
+
+```{r}
+col_sums <- apply(X = mat, MARGIN = 2, FUN = sum)
+all(col_sums == colSums(mat))
+```
+
+The real power of `apply` lies in the fact that it can work with any function (even those you write yourself, which we'll do later). First, read the help page for `?apply`, then figure out how to do each of the following using `apply`. Paste the code you come up with for each scenario into your Word document.
+
+(a) Compute the standard deviation of all the columns in `mat`
+(b) Compute the mean of all the rows in `mat`
+(c) Compute the variance (`var`) of all the columns in `mat`
+(d) Write a `for` loop to do the same thing you did in (b)
+
+
+### 10) `lapply` & `sapply`
+
+We applied `lapply` and `sapply` to vectors in the lecture. Recall that `lapply` and `sapply` also work on lists. Run the following code in your `R` console to create the list `my_list`.
+
+```{r}
+my_list <- list(a = 1:10, b = 2:20, c = rnorm(100))
+```
+
+Figure out how to do each of the following. Paste the code you come up with for each scenario into your Word document. Answer any questions as well.
+
+(a) Compute the mean of each element of `my_list` using `lapply`. What kind of data structure is returned?
+(b) Compute the mean of each element of `my_list` using `sapply`. What kind of data structure is returned?
+(c) What are two ways to make the results of (a) and (b) the same. 
+
+
+### 11) `tapply`
+
+Recall from the lecture that `tapply` applies a function to subsets of a vector. The subsets are defined by the second function argument (`INDEX`). This is often quite useful for computing summary statistics and is an example of the split-apply-combine paradigm. We'll use the built-in data set `warpbreaks` to illustrate its use:
+
+```{r}
+head(warpbreaks)
+tapply(warpbreaks$breaks, warpbreaks$wool, sum)
+```
+
+This code tallies up the number of breaks for each type of wool.
+
+Figure out how to do the following. Paste the code you come up with for each scenario into your Word document.
+
+(a) Use `tapply` and `warpbreaks` to compute the average number of breaks for each level of `tension`
+
+
+## Reading
+
+The resources below will help reinforce concepts covered in class. There are no specific questions or problems associated with these readings, but you are encouraged to read through each of them -- especially if any of the concepts covered in class were unclear:
+
+### Loops
+
+- [Sections 21.1 to 21.4 of the `R` for Data Science Book](http://r4ds.had.co.nz/iteration.html#introduction-14)
+- [Tutorial on loops from DataCamp](https://www.datacamp.com/community/tutorials/tutorial-on-loops-in-r#gs.Shh7myc)
+
+### Conditional Execution (`if`/`else`)
+
+- [Sections 19.4 of the `R` for Data Science Book](http://r4ds.had.co.nz/functions.html#conditional-execution)
+
+
+
+## References
+
+- The Monty Hall problem description is borrowed from [here](https://fiftyexamples.readthedocs.io/en/latest/monty-hall.html).
