@@ -1,0 +1,106 @@
+---
+title: "Week 4 Lab/Homework"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+
+# Lab - We did not invent the algorithm
+
+## Intro
+
+This week we're going to use some data from the [`RXKCD`](https://cran.r-project.org/web/packages/RXKCD/index.html) `R` package. `RXKCD` allows you to get information about and view [XKCD](http://xkcd.com/) comics. We'll be using our file import knowledge to get access to some data 
+
+Install the package if you have not done so already, then run the following code in your `R` console:
+
+```{r, eval = FALSE}
+library(RXKCD)
+getXKCD(882)
+```
+
+What happens? Read about the function `getXKCD` with `?getXKCD`. Play around with it. 
+
+## Making a Word Cloud
+
+*Source: the code below was modified from [here](http://onertipaday.blogspot.com/2011/07/word-cloud-in-r.html).* 
+
+This `R` code uses the `tm` and `wordcloud` packages to help us make a word cloud. Please install these packages if you have not done so already. These visualizations seemed to get really popular a few years back. The images are made by counting the number of times a word occurs in a set of text -- a book, some survey responses, a set of twitter feeds, etc -- and plotting the most frequently occurring words in a cluster. The size of a word in the visualization is proportional to the number of times that word occurred in the text. 
+
+Below, we'll use `read.csv` to import some data obtained from the `RXKCD` package. The file `xkcd.csv` is included in the [zip archive posted on Course Connect this week](https://courses.aquinas.edu/mod/resource/view.php?id=99905). Run each line in RStudio. By the end you will have created a word cloud showing the frequency of words in XKCD comic titles. 
+
+I would encourage you to try your best to understand what each step of the code is doing. Use `?` to search for help on functions you don't understand and examine the output of each function to try to make sense of what is happening.  
+
+
+```{r, message = FALSE, warning = FALSE, fig.height=8, fig.width=10}
+library(tm)
+library(wordcloud)
+library(RColorBrewer)
+
+# read in our XKCD data
+xkcd_df <- read.csv('data/xkcd.csv')
+
+# prepare our data with the tm package
+xkcd_corpus <- Corpus(DataframeSource(data.frame(xkcd_df[,'title'])))
+xkcd_corpus <- tm_map(xkcd_corpus, removePunctuation)
+xkcd_corpus <- tm_map(xkcd_corpus, content_transformer(tolower))
+xkcd_corpus <- tm_map(xkcd_corpus, removeWords, stopwords("english"))
+
+# get a matrix of word occurrences
+tdm <- TermDocumentMatrix(xkcd_corpus)
+m <- as.matrix(tdm)
+v <- sort(rowSums(m), decreasing = TRUE)
+d <- data.frame(word = names(v), freq = v)
+pal <- brewer.pal(7, "Dark2")
+
+# make our wordcloud
+wordcloud(
+  d$word, d$freq, scale = c(5, 1), min.freq = 2, max.words = 100, 
+  random.order = T, rot.per = .15, colors = pal, 
+  vfont = c("sans serif","plain")
+)
+```
+
+## 1) Your turn
+
+Please answer the following questions. Put all answers and requested figures in a Word document. 
+
+a. How many comics are in the data set? 
+b. What date was the most recent comic in our data set published?
+c. What word occurs most frequently in our comic titles? How many times does it occur? (hint: use the `max` and `which` functions; or read about the function `which.max`; or read about `sort`)
+d. Modify the code above to make the same type of figure for the data stored in the `transcript` column of `xkcd_df`. Export the figure and include it in your Word document.
+e. What word occurs most frequently in the transcripts of the comics and how frequently does it occur? (see hints for part c)
+
+
+*************************
+
+
+# Homework
+
+## 2) `ggplot2` Tutorial
+
+To reinforce some of the `ggplot2` concepts covered in class and introduce you to some additional ones, please walk through [this `ggplot2` tutorial](http://tutorials.iq.harvard.edu/R/Rgraphics/Rgraphics.html) developed by the Harvard’s [Institute for Quantitative Social Science](http://www.iq.harvard.edu/).
+
+This is a very comprehensive tutorial that will lead you through the process of re-creating a graphic that was published in [The Economist](http://www.economist.com/) -- the magazine who told you it [was a good idea to be a math major](http://www.economist.com/blogs/graphicdetail/2015/03/daily-chart-2).
+
+At the end of the tutorial you will have created a complex, publication-ready graphic. **Modify this final graphic in some way -- major or minor, it just can't be the exact same graph you made in the final step. Export this graphic and paste it into your Word document. Write a short paragraph to accompany your final figure. Please detail what you changed and give a brief summary of the graphic you have created.**
+
+
+## 3) Assigned Reading
+
+Many of the `ggplot2` concepts we covered in class today were taken from the under-development book [`R` for Data Science](http://r4ds.had.co.nz/).
+
+This book is freely available online and is an excellent resource for anyone learning data science or statistics using `R`. Please read through the [Data Vizualization](http://r4ds.had.co.nz/data-visualisation.html) chapter to provide additional context to the topics covered in class. Feel free to try out some of the exercises from the chapter.
+
+Write a paragraph reflecting on the reading and the course to date. Please include the following:
+
+- How you are feeling abou the pace of the class (e.g. "This class is going way to fast" or "I am bored b/c this is easy")
+- How you feel about the course structure -- i.e. splitting the class into 1/2 lecture and 1/2 lab
+- If having an assingned reading like this is useful to support the class lecture. Do you feel that having a reading or supporting text provides a deeper understanding of the content.  
+
+
+
+
