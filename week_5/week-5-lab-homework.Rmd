@@ -1,0 +1,231 @@
+---
+title: "Week 5 Lab/Homework"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+
+
+# Lab: Practicing functions with [`swirl`](http://swirlstats.com/)
+
+[`swirl`](http://swirlstats.com/) is an `R` package that helps you learn `R`, in `R`. Install the package as you normally would and use `library` to load the package in your `R` session:
+
+```{r, eval = FALSE}
+install.packages('swirl')
+library(swirl)
+```
+
+There are many different learning modules available in the `swirl` package. For your lab today, you'll work through one section of the course: *R Programming: The basics of programming in R*. This exercise will help to reinforce the concepts and use of functions that were covered in class. 
+
+Once the `swirl` package is loaded, you can start using `swirl` by typing the following:
+
+```{r, eval = FALSE}
+swirl()
+```
+
+There will be some welcome text and you should be prompted to enter your name. Carefully read through the text that is displayed to you to learn how to interact with the `swirl` package. 
+
+Soon, you will see the following text and be prompted to install a course:
+
+```
+| To begin, you must install a course. I can install a course for you from the
+| internet, or I can send you to a web page
+| (https://github.com/swirldev/swirl_courses) which will provide course options
+| and directions for installing courses yourself. (If you are not connected to
+| the internet, type 0 to exit.)
+
+1: R Programming: The basics of programming in R <--- CHOOSE THIS ONE :)
+2: Regression Models: The basics of regression modeling in R
+3: Don't install anything for me. I'll do it myself.
+```
+
+Select course 1 to install *R Programming: The basics of programming in R*. You should see the following if the installation works correctly:
+
+```
+| Course installed successfully!
+```
+
+Once you've installed *R Programming: The basics of programming in R*, begin the course by typing `1` when you are prompted to choose a course at this menu:
+
+```
+| Please choose a course, or type 0 to exit swirl.
+
+1: R Programming
+2: Take me to the swirl course repository!
+```
+
+`swirl` will then ask you to choose a lesson. Your assignment is to work through the lesson on functions. When prompted to choose a lesson, type `9` to select the lesson on functions:
+
+```
+| Please choose a lesson, or type 0 to return to course menu.
+
+ 1: Basic Building Blocks      2: Workspace and Files     
+ 3: Sequences of Numbers       4: Vectors                 
+ 5: Missing Values             6: Subsetting Vectors      
+ 7: Matrices and Data Frames   8: Logic                   
+ 9: Functions                 10: lapply and sapply       
+11: vapply and tapply         12: Looking at Data         
+13: Simulation                14: Dates and Times         
+15: Base Graphics    
+```
+
+Please work through the full lesson on functions and respond to the questions below. 
+
+
+
+### 1) Your Turn: Talk about `swirl`
+
+Please place your answer to this question in a Word document. Respond to the following:
+
+- did you like `swirl`? was the content helpful? 
+    - say 1 thing you liked about it and 1 thing you didn't like about it.
+- would you be interested in using `swirl` for future lessons
+
+
+
+*****************
+
+
+
+# Homework
+
+## Directions
+
+This week, you'll submit the code used to complete your homework in an `R` script instead of a Word document. Create a new `R` script and save it with the following name structure: `week-5-homework-yourlastname.R`. You will submit this script along with your Word document from the lab on Course Connect.   
+
+**Please use comments to denote which sections of your script relate to the different questions below. Example:**
+
+```{r, eval = FALSE}
+# Question 2 -------------------------------------------------------------------
+
+# a
+my_awesome_answer <- sweet_func(100)
+
+# b
+my_awesomer_answer <- awesome_func(100)
+
+...
+
+```
+
+
+## Part 1: String Manipulations 
+
+### Reading
+
+For the homework, you'll be reading a few sections from a publicly available book, [*Handling and Processing Strings in R*](http://gastonsanchez.com/Handling_and_Processing_Strings_in_R.pdf)
+
+Please read the following sections on working with strings in `R`:
+
+- Pages 23-38 (First part of Ch. 3)
+- pages 55-68 (First part of Ch. 5)
+
+
+### 2) Your turn
+
+Now you'll put the techniques you just read about to work. Paste the following code at the top of your script:
+
+```{r, eval = FALSE}
+# abc radio stations data URL
+abc <- "http://www.abc.net.au/local/data/public/stations/abc-local-radio.csv"
+
+# read data from URL
+radio <- read.table(abc, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+
+# 2 ways to select first item from every element of a list -- you might need this later
+my_list <- lapply(1:10, function(x) sample(x=letters, size=5))
+sapply(my_list, '[', 1)
+sapply(my_list, function(x) x[1])
+```
+
+
+Add code to your `R` script to do the following:
+
+a. use `table` to count the number of times each state occurs in the data set. sort the results and `print` to the screen
+b. use `grep` with the `value = TRUE` option to find all values in the `PO.suburb` column that include the letter `r`. store the returned values in a vector.
+c. use `grep` with the `value = TRUE` option to find all values in the `PO.suburb` column that include either the letter `r` or `R`. store the returned values in a vector.
+d. use the `setdiff` function to figure out if there are any differences between the vectors from b & c
+e. use the `strsplit` function to return the first 4 numbers of each phone number in the `Sms.number` column. save these values to a vector. the first 4 values should be `"0467", "0487", "0487", "0487"`
+f. use the `substr` function to solve the same problem from part e. 
+g. add a new column to the data set by `paste`-ing together the `PO.box`, `PO.suburb`, and `PO.postcode` columns. call the new column `po_full`
+h. figure out how many total characters are in the `Facebook` column. store that value in a variable and use it to have your program print the following to the screen:
+
+```
+There are <insert number of characters> in the Facebook column
+```
+
+## Part 2: More Functions!
+
+
+### Directions
+
+For each of the exercises below, you will be asked to write a function that performs a task. Please place all functions in your `R` script and and remember to use comments so I know which question you are answering. Please run the following two vectors through the functions you create in 4, 5, and 6 to test the behavior:
+
+```{r}
+vec1 <- seq(0, 100, 5)
+vec2 <- rnorm(100, 0, 10)
+```
+
+Your final code for this section should look something like this:
+
+```{r, eval = FALSE}
+
+# example data 
+vec1 <- seq(0, 100, 5)
+vec2 <- rnorm(100, 0, 10)
+
+# Question 6 -------------------------------------------------------------------
+six_answer <- function(vec) {
+  # some clever code to answer this question
+
+}
+
+six_answer(6)
+six_answer(9)
+
+
+# Question 7 -------------------------------------------------------------------
+seven_answer <- function(vec) {
+  # some clever code to answer this question
+  
+}
+
+seven_answer(vec1)
+seven_answer(vec2)
+
+
+# .... and so on
+
+```
+
+
+### 3) 
+
+Write a function which takes a single numeric value X as argument and returns a logical value which is `TRUE` if X is larger than 7, or `FALSE` otherwise.
+
+
+### 4) 
+
+Write a function which takes a numeric vector as argument and calculates the standard deviation of the vector. *Note: I know you can do this with the built in `sd` function, but I want you to write you own implementation.*
+
+
+### 5) 
+
+Write a function that takes a vector of numbers as input and returns the following in a list: 
+
+a) the mean of the vector
+b) the variance of the vector
+c) the standard deviation of the vector
+d) the 5th, 25th, 50th, 75th, and 95th percentiles of the vector (see `?quantile`)
+
+
+### 6) 
+
+Write a function that normalizes the values of an input vector; normalize by subtracting the mean of the data and rescaling it to have a standard deviation of 1. What happens if you supply a single value to this function?
+
+
+

@@ -30,7 +30,7 @@ What happens? Read about the function `getXKCD` with `?getXKCD`. Play around wit
 
 This `R` code uses the `tm` and `wordcloud` packages to help us make a word cloud. Please install these packages if you have not done so already. These visualizations seemed to get really popular a few years back. The images are made by counting the number of times a word occurs in a set of text -- a book, some survey responses, a set of twitter feeds, etc -- and plotting the most frequently occurring words in a cluster. The size of a word in the visualization is proportional to the number of times that word occurred in the text. 
 
-Below, we'll use `read.csv` to import some data obtained from the `RXKCD` package. The file `xkcd.csv` is included in the [zip archive posted on Course Connect this week](https://courses.aquinas.edu/mod/resource/view.php?id=99905). Run each line in RStudio. By the end you will have created a word cloud showing the frequency of words in XKCD comic titles. 
+Below, we'll use `read.csv` to import some data obtained from the `RXKCD` package. The file `xkcd.csv` is included in the [zip archive posted on Course Connect this week](https://courses.aquinas.edu/mod/resource/view.php?id=125940). Run each line in RStudio. By the end you will have created a word cloud showing the frequency of words in XKCD comic titles. 
 
 I would encourage you to try your best to understand what each step of the code is doing. Use `?` to search for help on functions you don't understand and examine the output of each function to try to make sense of what is happening.  
 
