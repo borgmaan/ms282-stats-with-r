@@ -1,0 +1,83 @@
+---
+title: "Week 6 Lab/Homework"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+```
+
+## Directions
+
+Please put all responses in the same Word document and indicate which section each response corresponds to by including the question number -- e.g. 1), 2)...
+
+Please **convert the completed document to PDF** and upload to the *Week 6 Lab/Homework* section on CourseConnect. Please name the file in the following manner: `week-6-homework-yourlastname.pdf`
+
+************************
+
+## Data Transformation
+
+Today's lecture introduced you to the simplicity and power of the `dplyr` package for data manipulation. Read [chapter 5 of R4DS](http://r4ds.had.co.nz/transform.html) to gain a deeper understanding of the material covered in class. Additionally, complete the following questions from the reading -- please copy and paste the code you came up with for each of the questions into your Word document.
+
+### 1) 5.2.4 Exercises \#1
+
+Find all flights that (referring to the data from the `nycflights13` packaage)
+    a. Had an arrival delay of two or more hours
+    b. Flew to Houston (IAH or HOU)
+    c. Were operated by United, American, or Delta
+    d. Departed in summer (July, August, and September)
+    e. Arrived more than two hours late, but didn’t leave late
+    f. Were delayed by at least an hour, but made up over 30 minutes in flight
+    g. Departed between midnight and 6am (inclusive)
+
+### 2) 5.6.7 Exercises \#4
+
+Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
+
+
+************************
+
+## Exploratory Data Analysis
+
+Today's lecture also introduced you to the idea of Exploratory Data Analysis. Read [chapter 7 of R4DS](http://r4ds.had.co.nz/exploratory-data-analysis.html) to continue learning about this important statistical concept. Additionally, complete the following questions from the reading -- please copy and paste the code you came up with for each of the questions into your Word document.
+
+### 3) 7.3.4 Exercises \#2
+
+Explore the distribution of price. Do you discover anything unusual or surprising? (Hint: Carefully think about the `binwidth` and make sure you try a wide range of values.)
+
+### 4) 7.3.4 Exercises \#3
+
+How many diamonds are 0.99 carat? How many are 1 carat? What do you think is the cause of the difference?
+
+### 5) 7.4.1 Exercises \#2
+
+What does `na.rm = TRUE` do in `mean()` and `sum()`?
+
+### 6) 7.5.3.1 Exercises \#5
+
+Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of `x` and `y` values, which makes the points outliers even though their `x` and `y` values appear normal when examined separately. Why is a scatterplot a better display than a binned plot for this case?
+
+
+```{r}
+ggplot(data = diamonds) +
+  geom_point(mapping = aes(x = x, y = y)) +
+  coord_cartesian(xlim = c(4, 11), ylim = c(4, 11))
+```
+
+
+
+
+
+
+
+
+
+
+
+

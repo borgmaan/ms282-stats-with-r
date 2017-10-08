@@ -1,0 +1,415 @@
+---
+title: "MS282 Midterm (Show Me The Money)"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+
+# Part 1 (65 points)
+
+
+## Overview
+
+### Rules
+
+- You may work in groups
+- You can use any resources you want (books, notes, internet, friends, teachers)
+- You must place all of your answers in a Word document and make it clear which question you are answering at the time. 
+- For each question in Part 1, copy and paste the code you used to solve the problem into your Word document. If the questions asks you to provide additional information, please include your answers to the question along with your code in the Word document.
+- Each question in this portion of the midterm is worth 5 points
+
+
+### Background
+
+During this midterm you'll demonstrate your `R` proficiency while solving a modern data analysis problem using the skills you've acquired to this point. Most tasks will be broken down by week to make examples easier to find in your notes. 
+
+On to the project! Who funds presidential campaigns? Who has raised the most money for the 2016 campaign to date (as of 10/05/2015)? Has it impacted polling numbers? Let's find out!
+
+<div align='center'>
+![img](giphy.gif)
+</div>
+
+
+
+### The Data
+
+Your professor downloaded the Federal Election Commission's 2016 Presidential Campaign Finance data set from [http://www.fec.gov/disclosurep/PDownload.do](http://www.fec.gov/disclosurep/PDownload.do) on 10/05/2015. 
+
+[Here's](ftp://ftp.fec.gov/FEC/Presidential_Map/2016/DATA_DICTIONARIES/CONTRIBUTOR_FORMAT.txt) the official description of the data. Please read through this and familiarize yourself with the variable descriptions.
+
+You can download a clean version of data set from [here on CourseConnect](https://courses.aquinas.edu/mod/resource/view.php?id=100224).
+
+```{r config, include=FALSE}
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.align = 'center', 
+                      verbose = TRUE, cache = TRUE)
+
+if (!file.exists('midterm-data.csv')) {
+  dat <- read.csv('P00000001-ALL.csv', row.names = NULL, stringsAsFactors = FALSE)
+  names(dat) <- c(names(dat)[2:ncol(dat)], '')
+  dat <- dat[,-ncol(dat)]
+  date_parsed <- dmy(dat$contb_receipt_dt)
+  dat <- dat[date_parsed > mdy('01/01/15'), ]
+  write.csv(dat, file = 'midterm-data.csv', row.names = FALSE)
+}
+
+# occupations
+# occ <- sort(table(dat$contbr_occupation), decreasing = T)
+# tk <- names(occ)(which(occ > 1))
+
+```
+
+
+## Weeks 4 & 5
+
+In this section, you'll use your data import skills, `R` programming skills and string manipulation knowledge to read in our data set and prepare it for later analysis. 
+
+### 1) 
+
+Your first task will involve reading the data set into `R`. Download the data using the link above; be sure to remember where you saved it. Lucky for you, this is a well formed CSV file and you should be able to read it in using the standard methods we learned about. Please be sure to set the `stringsAsFactors` argument to `FALSE` when you are reading the data. If you do not set the `stringsAsFactors` argument to `FALSE` you will have a difficult time completing the midterm. Also, please name your imported data set `dat`.
+
+
+```{r}
+dat <- read.csv('midterm-data.csv', stringsAsFactors = FALSE)
+# system.time(dat <- data.table::fread('midterm-data.csv', stringsAsFactors = FALSE))
+```
+
+### 2) 
+
+Some of these campaign donations have been refunded. Use `grep` to count the number of times the word `Refund` occurs in the `receipt_desc` column.
+
+```{r, include=FALSE}
+length(grep('Refund', dat$receipt_desc, value = T))
+```
+
+### 3) 
+
+Create a new column in the data frame that contains the only the month information stored in the column `contb_receipt_dt` -- i.e. extract `JUN` for `27-JUN-15`, `APR` for `13-APR-15`, etc. **Name your newly created column `month_abrv`**.
+
+```{r}
+dat$month_abrv <- substr(dat$contb_receipt_dt, start = 4, stop = 6)
+```
+
+### 4) 
+
+Create a new column in the data frame that includes only the standard 5 digit zip code. Start out by creating an empty column to store the new variable by running the following code:
+
+```{r, echo = TRUE}
+dat$five_zip <- NA
+```
+
+Now, use a `for` loop to iterate over the rows of the data frame and populate `five_zip` according to the following rules:
+
+- If the row's value for `contbr_zip` has 9 characters in it, set the value of `five_zip` to be the first 5 digits in the string. For example, the value of `contbr_zip` in the first row is `090960009`, so we'd set the value of `five_zip` to be `09096`.
+- If the row's value for `contbr_zip` has any other number of characters, set the value of `five_zip` to be the same value of `contbr_zip`.
+
+**Warning, your for loop is going to take awhile to run! Like minutes!**
+
+```{r}
+
+if (!file.exists('post-for.rds')) {
+  for (i in 1:nrow(dat)) {
+    if (nchar(dat$contbr_zip[i]) == 9) {
+      dat$five_zip[i] <- substr(dat$contbr_zip[i], 1, 5)
+    } else {
+      dat$five_zip[i] <- dat$contbr_zip[i]
+    }
+  }
+  saveRDS(dat, file = 'post-for.rds')
+} else {
+  dat <- readRDS('post-for.rds')
+}
+
+
+```
+
+
+### 5) 
+
+Which zip code has donated the most frequently? Which state is that zip code located in?
+
+```{r, include=FALSE}
+# head(sort(table(dat$five_zip), decreasing = T))
+# 10023
+# NY
+```
+
+
+## Week 1
+
+During week 1 we learned how to install packages from remote repositories like [CRAN](https://cran.r-project.org/). Here you'll install a package to help parse some donation dates out of the FEC data set. You'll also demonstrate your ability to learn about a new function in an `R` package and use it to solve a specific problem.
+
+We have not yet discussed how `R` deals with variables that store information about dates and times. Part of the reason for this is the fact that dealing with date-time data in `R` can cause a lot of headaches. The [`lubridate`](https://cran.r-project.org/web/packages/lubridate/index.html) package makes dealing with date-time data much easier. 
+
+### 6) 
+
+Install the `lubridate` package and and skim through [this introduction](https://cran.r-project.org/web/packages/lubridate/vignettes/lubridate.html) to get a feel for package's intended use. Copy and paste the code you used to install the package into your Word document.
+
+```{r, eval = FALSE}
+install.packages('lubridate')
+library(lubridate)
+```
+
+### 7)
+
+The `contb_receipt_dt` column in our data set stores the reported contribution receipt date for each gift. What is the data type of the `contb_receipt_dt` column?
+
+### 8)
+
+The following `lubridate` functions allow you to convert date-time variables to `R`'s native date-time representation: `ymd()`, `mdy()`, and `dmy()`. Figure out which one of these functions you need to use to parse the data stored in `contb_receipt_dt`. Use the correct function to create a new column, `date_parsed`, that stores the parsed values.
+
+```{r}
+dat$date_parsed <- dmy(dat$contb_receipt_dt)
+```
+
+
+## Week 2
+
+Week 2 introduced us to `R`'s basic data types and data structures. Here you'll demonstrate your knowledge of each of these. 
+
+### 9)
+
+How many columns in `dat` are `character`? How many columns are `numeric` or `integer`?
+
+
+### 10)
+
+Find the transaction with the smallest value of `contb_receipt_amt` in our data set. What is it's amount. Which candidate is it associated with? Find the donation matching this refund by `grep`'ing for the donor's last name in the data set. What is this donor's `contbr_occupation`?
+
+```{r, include=FALSE}
+dat[which(dat$contb_receipt_amt ==  min(dat$contb_receipt_amt)), ]
+dat[grep('GOCKE', dat$contbr_nm), ]
+```
+
+
+## Week 4
+
+Week 4 taught us about the `ggplot2` graphics system. **For each of the questions in this section, please export a copy of the graph you generate and include it in the Word document as well.**
+
+
+### 11)
+
+Here we're going to examine the number of gifts given to each candidate on each day. 
+
+Run the following code that uses `dplyr` to compute the total amount of donations received by each candidate on each date in the data set. 
+
+```{r, echo = TRUE}
+library(dplyr)
+cand_date <- dat %>% 
+  group_by(cand_nm, date_parsed) %>% 
+  summarise(total_gifts = sum(contb_receipt_amt))
+```
+
+Now, use `ggplot` to plot the `cand_date` data set using a line graph (`geom_line`). Place `date_parsed` on the x-axis and `total_gifts` on the y-axis. Create an aesthetic mapping for color that creates individual uniquely-colored lines for each candidate. 
+
+```{r, include=FALSE}
+ggplot(cand_date, aes(x = date_parsed, y = total_gifts, color = cand_nm)) + 
+	geom_line()
+```
+
+
+### 12)
+
+Make some boxplots to see how the distribution of `contb_receipt_amt` changes over time. Use the `month_abrv` variable you created in question 3) as your x-variable to show how the distribution of `contb_receipt_amt` changes from month-to-month.
+
+*Extra credit if you can figure out how to get the months ordered correctly [(hint)](http://stackoverflow.com/questions/6867393/how-to-change-order-of-boxplots-when-using-ggplot2).*
+
+
+```{r, include=FALSE}
+# c("JUN", "APR", "MAY", "MAR", "JAN", "FEB")
+ggplot(dat, aes(x = month_abrv, y = contb_receipt_amt)) + 
+  geom_boxplot() 
+```
+
+
+### 13)
+
+Make some boxplots to see how the distribution of `contb_receipt_amt` differs between candidates. Use the `cand_nm` x-variable and `geom_boxplot`. Write 2 or 3 sentences describing any trends or oddities you notice. 
+
+
+```{r, include=FALSE}
+ggplot(dat, aes(x = cand_nm, y = contb_receipt_amt, color = cand_nm)) + 
+	geom_boxplot()
+
+ggplot(dat, aes(x = cand_nm, y = contb_receipt_amt, color = cand_nm)) + 
+	geom_boxplot() +
+  geom_jitter(position = position_jitter(width = .2))
+
+```
+
+
+# Part 2 (35 points)
+
+## Overview
+
+For this portion of the midterm you will be broken into teams. Each team will be responsible for performing some additional exploratory analysis of the FEC data set. Each team will also be responsible for giving a ~15-20 minute presentation during class on 10/10. Below are your (modified) random group assignments:
+
+```{r, echo=FALSE, results='asis'}
+	
+set.seed(1337)
+students <- c(
+  "ADAM CICHON",
+  "JESSYCA FYE",
+  "CRAIG JENSEN",
+  "MITCHELL KOBAYASHI",
+  "MITCHELL MCDANIEL",
+  "ANNA OMNESS",
+  "OLIVIA PLATTE",
+  "TRISTEN SPENCER",
+  "SAMANTHA TERNES"
+  )
+  
+grps <- rep(1:4, times = c(2,2,2,3))
+
+grp_assign <- data.frame(
+    Group = sample(grps), 
+    Student = students
+  )
+
+
+# rownames(grp_assign) <- NULL
+# 
+# grp_assign <- grp_assign[order(grp_assign$Group), ]
+# 
+# grp_assign <- grp_assign[c(1,2,3,4,5,6,7,8,10,9,11), ]
+# grp_assign$Group <- rep(1:4, c(3, 3, 3, 2))
+knitr::kable(grp_assign, row.names = F)
+
+```
+
+
+## Presentation Guidelines
+
+Your group's presentation should be around 15-20 minutes. You should attempt to distribute the talking evenly between group members. 
+
+Your group's presentation will summarize the results of some additional exploratory data analysis of the data set you worked with in Part 1 of the midterm. This analysis can be as simple or as complex as you want. In the next section of this document I will show you how to augment the data set with additional information that will open up opportunities for interesting analyses.
+
+At a minimum, your presentation must include the following:
+
+1. 1 slide explaining a question you hoped your exploratory analysis would answer
+2. 1 slide describing the code and methods you used to perform your analysis
+3. 1 slide (with a graph!) describing the result 
+4. 1 slide that lists what you've liked about the class thus far
+5. 1 slide that lists things you would change about the class for the second half of the semester
+
+Going above and beyond the minimum requirements is encouraged. You will probably have more than 5 slides for a 15-20 minute presentation.  
+
+Some analysis suggestions in case you can't think of any:
+
+- Differences in total funding between Republicans and Democrats
+- Does increased funding correlate with stronger polling results?
+- Do certain states disproportionately fund one party or another?
+
+
+## Augmenting our Data with `pollstR`
+
+The [`pollstR`](https://cran.r-project.org/web/packages/pollstR/index.html) `R` package provides easy access to data from the [HuffPost Pollster API](http://elections.huffingtonpost.com/pollster/api). Here's a description of the data from the API site:
+
+> The Pollster API provides programmatic access to the results of tens of thousands of opinion polls we've collected since 2004 as well as our estimates of the current opinion on various candidates and topics.
+
+[This vignette](https://cran.r-project.org/web/packages/pollstR/vignettes/introduction.html) gives an excellent overview of the package capabilities. The project's [GitHub](https://github.com/rOpenGov/pollstR) page also provides a good overview of the package goals and provides some interesting examples. 
+
+**Below, I provide some code that adds information from the 2016 national primaries to the full data set and to a summarized version of the data set. The column `value` that is added to the data gives the estimated percent of the vote the candidate would earn in their party's primary election.**
+
+As always, please install the package `pollstR` package prior to using it. 
+
+
+```{r, echo=TRUE}
+library(pollstR)
+
+# getting data for the national primaries
+rp <- pollstr_chart("2016-national-gop-primary")
+dp <- pollstr_chart("2016-national-democratic-primary")
+
+# extract the overall estimates from each data set and combine them
+nat <- rbind(rp[['estimates']], dp[['estimates']])
+nat <- filter(nat, !is.na(first_name))             
+
+# add this informaiton to our full data set
+dat$last_name <- sapply(strsplit(dat$cand_nm, split = ','), '[', 1)
+dat_aug <- inner_join(dat, nat, by = 'last_name')
+
+
+# say we only wanted to look at total gifts for each candidate, we would 
+# do something like this
+gift_totals <- dat %>% 
+  group_by(cand_nm) %>% 
+  summarise(total_gifts = sum(contb_receipt_amt))
+
+gift_totals$last_name <- sapply(strsplit(gift_totals$cand_nm, split = ','), '[', 1)
+
+mm <- inner_join(gift_totals, nat, by = 'last_name')
+
+```
+
+
+
+
+
+```{r, include=FALSE, eval=FALSE}
+ggplot(us_econ$estimates_by_date, aes(x = date, y = value, color = choice)) + 
+  geom_point() + 
+  geom_smooth()
+
+ggplot() + 
+  # geom_point(data = obama_job$estimates_by_date, mapping = aes(x = date, y = value, color = choice), shape = 17) + 
+  geom_smooth(data = obama_job$estimates_by_date, mapping = aes(x = date, y = value, color = choice), linetype = 2, se = FALSE) + 
+  geom_smooth(data = us_econ$estimates_by_date, mapping = aes(x = date, y = value, color = choice), linetype = 1, se = FALSE) 
+
+
+
+
+# library(jsonlite)
+# 
+# # how many donations have been given to each candidate?
+# n_gifts <- dat %>% 
+#   group_by(cand_nm) %>% 
+#   summarise(N = length(contb_receipt_amt))
+# 
+# ggplot(n_gifts, aes(x = cand_nm, y = N, fill = cand_nm)) + 
+#   geom_bar(stat = 'identity')
+# 
+# 
+# ir <- fromJSON('http://elections.huffingtonpost.com/pollster/api/charts/2016-iowa-presidential-republican-primary.json')
+# id <- fromJSON('http://elections.huffingtonpost.com/pollster/api/charts/2016-iowa-presidential-democratic-primary.json')
+#   
+# nhr <- fromJSON('http://elections.huffingtonpost.com/pollster/api/charts/2016-new-hampshire-presidential-republican-caucus.json')
+# nhd <- fromJSON('http://elections.huffingtonpost.com/pollster/api/charts/2016-new-hampshire-presidential-democratic-caucus.json')
+# 
+# 
+# 
+# 
+# 
+# 
+# nd <- fromJSON('http://elections.huffingtonpost.com/pollster/api/charts/2016-national-democratic-primary.json')
+#   
+# nr <- fromJSON('http://elections.huffingtonpost.com/pollster/api/charts/2016-national-gop-primary.json')
+# 
+# nat <- rbind(nr$estimates, nd$estimates)
+# nat <- filter(nat, !is.na(first_name))             
+# 
+# gift_totals <- dat %>% 
+#   group_by(cand_nm) %>% 
+#   summarise(total_gifts = sum(contb_receipt_amt))
+# 
+# 
+# gift_totals$last_name <- sapply(strsplit(gift_totals$cand_nm, split = ','), '[', 1)
+# 
+# mm <- inner_join(gift_totals, nat, by = 'last_name')
+# 
+# ggplot(mm, aes(x = total_gifts, y = value, color = cand_nm)) + 
+# 	geom_point() + 
+#   facet_wrap(~party, scales = 'free') + 
+#   geom_smooth(aes(color = NULL), method = 'lm', se = FALSE)
+# 
+# 
+
+
+```
