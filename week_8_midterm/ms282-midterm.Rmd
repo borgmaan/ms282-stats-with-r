@@ -6,6 +6,8 @@ output:
   html_document:
     toc: true
     toc_float: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 
@@ -249,9 +251,9 @@ ggplot(dat, aes(x = cand_nm, y = contb_receipt_amt, color = cand_nm)) +
 
 ## Overview
 
-For this portion of the midterm you will be broken into teams. Each team will be responsible for performing some additional exploratory analysis of the FEC data set. Each team will also be responsible for giving a ~15-20 minute presentation during class on 10/10. Below are your (modified) random group assignments:
+For this portion of the midterm you will be broken into teams. Each team will be responsible for performing some additional exploratory analysis of the FEC data set. Each team will also be responsible for giving a ~15-20 minute presentation during class on 10/31. 
 
-```{r, echo=FALSE, results='asis'}
+```{r, echo=FALSE, results='asis', eval=FALSE}
 	
 set.seed(1337)
 students <- c(
@@ -321,20 +323,23 @@ The [`pollstR`](https://cran.r-project.org/web/packages/pollstR/index.html) `R` 
 As always, please install the package `pollstR` package prior to using it. 
 
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, eval = F}
 library(pollstR)
+library(readr)
+library(ggrepel)
+# install.packages('readr')
 
 # getting data for the national primaries
-rp <- pollstr_chart("2016-national-gop-primary")
-dp <- pollstr_chart("2016-national-democratic-primary")
+rp <- pollster_charts_trendlines('2016-national-gop-primary')
+dp <- pollster_charts_trendlines("2016-national-democratic-primary")
 
 # extract the overall estimates from each data set and combine them
-nat <- rbind(rp[['estimates']], dp[['estimates']])
-nat <- filter(nat, !is.na(first_name))             
+nat <- rbind(rp$content, dp$content)
+# nat <- filter(nat, !is.na(first_name))             
 
 # add this informaiton to our full data set
 dat$last_name <- sapply(strsplit(dat$cand_nm, split = ','), '[', 1)
-dat_aug <- inner_join(dat, nat, by = 'last_name')
+dat_aug <- inner_join(dat, nat, by = c('last_name' = 'label'))
 
 
 # say we only wanted to look at total gifts for each candidate, we would 
@@ -344,8 +349,17 @@ gift_totals <- dat %>%
   summarise(total_gifts = sum(contb_receipt_amt))
 
 gift_totals$last_name <- sapply(strsplit(gift_totals$cand_nm, split = ','), '[', 1)
+n2 <- nat %>% 
+  group_by(label) %>% 
+  summarise(pct = mean(value))
 
-mm <- inner_join(gift_totals, nat, by = 'last_name')
+mm <- inner_join(gift_totals, n2, by = c('last_name' = 'label'))
+
+ggplot(mm, aes(x = total_gifts, y = pct/100)) + 
+  geom_point() + 
+  geom_label_repel(aes(label = last_name)) + 
+  scale_x_continuous(labels = scales::dollar) +
+  scale_y_continuous(labels = scales::percent)
 
 ```
 

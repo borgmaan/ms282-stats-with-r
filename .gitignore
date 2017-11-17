@@ -1,5 +1,7 @@
 # ignore all of this junk...
 
+*_cache*
+*DS_Store*
 .Rproj.user
 .Rhistory
 .RData
@@ -18,7 +20,9 @@ MS288 New Course ApplicationJanuary 2015 (1).docx
 notes
 grades
 *assignments*
+*assigments*
 *hmwk*
+*assignsubmission*
 
 # comment these as you work on them...
 #week_1
@@ -34,5 +38,5 @@ week_16
 #week_4
 #week_5
 #week_6
-week_8
-week_9
+#week_8
+#week_9
