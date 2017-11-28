@@ -1,0 +1,168 @@
+---
+title: "Week 10 Lab/Homework"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+
+```{r config, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, fig.align = 'center', 
+                      verbose = TRUE, message = FALSE)
+```
+
+# Lab - What To Do When Assumptions Are Violated
+
+## Background
+
+Data is not always well behaved. What do we do when that is the case? This lab will walk you through the process of performing a hypothesis test and show you some approaches that can be applied when a *t*-test might not be appropriate. 
+
+
+## Our Data
+
+The data can be downloaded [here](https://courses.aquinas.edu/mod/resource/view.php?id=102570) on CourseConnect.
+
+Is it harder to maintain your balance while you are concentrating? Nine elderly (6 men and 3 women) and eight young men were subjects in this experiment. Each subject stood barefoot on a "force platform" and was asked to maintain a stable upright position and to react as quickly as possible to an unpredictable noise by pressing a hand held button. The noise came randomly and the subject concentrated on reacting as quickly as possible. The platform automatically measured how much each subject swayed in millimeters in both the forward/backward and the side-to-side directions. A description of the columns in the data set follows:
+
+```
+Subject_No: Number assigned to each subject
+forward_backward: Mean sway range (in millimeters) in the forward-backward plane
+side_side: Mean sway range (in millimeters) in the side-to-side plane
+Age_Group: Coded as young or elderly
+```
+
+First, let's look at this data graphically.
+
+```{r}
+library(ggplot2)
+bal <- read.delim('data/balance.tsv', check.names = FALSE)
+ggplot(bal, aes(x = Age_Group, y = forward_backward, fill = Age_Group)) + 
+  geom_boxplot()
+
+ggplot(bal, aes(sample = forward_backward, color = Age_Group)) + 
+  stat_qq()
+
+```
+
+How close are our group variances?
+
+```{r}
+tapply(bal$forward_backward, bal$Age_Group, var)
+```
+
+Not so good. Certainly would need to use a Welch's *t*-test here. Let's perform the *t*-test. Here we'll use the formula interface for the `t.test` function that was not covered in class. On the left side of the `~` we place the quantitative value to be tested; on the right side we place our grouping variable. When using this interface we need to specify the `data` argument to tell `t.test` which data frame to use for the test. 
+
+```{r}
+t.test(forward_backward~Age_Group, data = bal)
+```
+  
+Our test comes back significant and the result seems to be in line with what we observe in our boxplots above. However, our outlier causes our sample to deviate significantly from normality; hence, the assumptions of our t-test are violated. When assumptions of statistical techniques are violated, inferences drawn from them are questionable (and can be flat out wrong in some cases).
+
+A more conservative (and appropriate) approach  for reporting these results would be to employ what statisticians call *non-parametric* statistical techniques. These statistical tests would not be adversely affected by the issues that plague our *t*-test and would lead to more robust inference. We'll discuss and demonstrate a few approaches below. 
+
+
+## Non-Parametric Approaches
+
+### Wilcoxon Rank-Sum Test (Mann-Whitney U-Test)
+
+The non-parametric alternative to the two independent samples t-test is known as the Wilcoxon rank-sum test (sometimes called the Mann-Whitney U-Test). 
+
+Please watch [this video](https://www.youtube.com/watch?v=qOP2O1CDVgI) to learn about the mathematics behind the method. Essentially, the method removes the assumption about the shape (e.g. normality & variances) of the data by converting it to ranks prior to performing any any comparisons. The only assumption of the test is that the distributions of data across the groups have relatively similar shapes, but the test is quite robust to this. 
+
+The null hypothesis of the test is that the two samples are drawn from the same distribution. It follows that the the alternative hypothesis is that they are drawn from different distributions. We'll write our hypotheses in plain English for these tests:
+
+$$ 
+	H_{0}: the\, two\, samples\, are\, drawn\, from\, the\, same\, distribution\\
+	H_{a}: the\, two\, samples\, are\, drawn\, from\, different\, distributions
+$$
+
+
+
+#### Performing the test in `R`
+
+We can perform the Wilcoxon rank-sum test in `R` using the `wilcox.test` function. This function looks and behaves very similar to the `t.test`. See `?wilcox.test` for usage. The code below performs the test on our data set. 
+
+```{r}
+wilcox.test(forward_backward~Age_Group, data = bal)
+```
+
+Again, the test is significant giving us confidence that a true difference exists between the two age groups. The result from the Wilcoxon rank-sum test would be preferred as the 
+
+
+#### What to do if your data are paired?
+
+What the paired t-test is to the two independent samples t-test, the Wilcoxon signed-rank test is to the Wilcoxon rank sum test. In this case you would pass the vector of differences to `wilcox.test` and specify the appropriate `mu` value to the function just as we have seen for the paired *t*-test.
+
+
+#### 1) Your Turn
+
+Write a short paragraph describing the differences between the Welch's t-test and the Wilcoxon Rank-Sum Test. 
+
+
+### Permutation Testing
+
+We saw an example of a permutation tests during the first week of class when we analyzed that classic *Lady Tasting Tea* problem ([link](https://courses.aquinas.edu/pluginfile.php/113158/mod_resource/content/3/week-1-lab.html#part-1-the-lady-tasting-tea)). The idea is that we create a distribution of all possible t-statistics that could be obtained by shuffling the group labels in our data set. The number of observed test statistics that are larger than our observed test statistic is taken to be our p-value. 
+
+Permutation tests are essentially assumptionless and are a powerful tool for the modern statistician. The following code shows how to perform a permutation test for this example. 
+
+```{r}
+base_t <- t.test(forward_backward~Age_Group, data = bal)$statistic
+perm_ts <- replicate(1000, expr = {
+  grp_perm <- sample(bal$Age_Group)
+  t.test(bal$forward_backward~grp_perm)$statistic
+})
+p_value <- mean(abs(perm_ts) > base_t)
+p_value
+```
+
+Again, the test is significant with a p-value of `r p_value`. Below is a graph showing the results of the permutation test. The histogram plots all the t-statistics obtained in the permutations. The red lines show +/- values of our observed test statistic. The percentage of values larger or smaller than these lines is taken as our p-value. 
+
+```{r}
+hist(perm_ts)
+abline(v = base_t, col = 'red', lty = 2)
+```
+
+
+
+***************
+
+
+# Homework
+
+
+## Reading
+
+Please read the three papers posted on CourseConnect under the *Points of Significance Papers* heading. The examples discussed in class were taken from these papers. They provide a good description of the ideas that were discussed in class. Also, watch the *Dance of the P-Values* video linked in the same section. 
+
+#### 2)
+
+Write a paragraph that describes your reaction to the dance of the p-values video. Were you surprised by the ideas discussed there? Did you learn anything new?
+
+
+## Exercises
+
+The following two sections include a link to a data set with an accompanying story. Each example features a comparison of two quantitative variables. **Please download the data sets, decide which type of 2 sample test is most appropriate, and follow the 5-step hypothesis testing approach discussed in class.**
+
+
+#### 3)
+
+Data set can be downloaded from [here](https://courses.aquinas.edu/mod/resource/view.php?id=102568) on CourseConnect
+
+This dataset contains the labor force participation rate (LFPR) of women in 19 cities in the United States in each of two years (1968 and 1972). The data help to measure the growing presence of women in the labor force over this period. Is there a difference in rate between the two years?
+
+
+#### 4)
+
+Data set can be downloaded from [here](https://courses.aquinas.edu/mod/resource/view.php?id=102569) on CourseConnect
+
+Does increasing calcium intake reduce blood pressure? Observational studies suggest that there is a link, and that it is strongest in African-American men. Twenty-one African-American men participated in an experiment to test this hypothesis. Ten of the men took a calcium supplement for 12 weeks while the remaining 11 men received a placebo. Researchers measured the blood pressure of each subject before and after the 12-week period. The experiment was double-blind.
+
+
+## References
+
+These data sets were taken from [The Data and Story Library](http://lib.stat.cmu.edu/DASL/). 
+
+

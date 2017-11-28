@@ -1,0 +1,71 @@
+---
+title: "Week 13 Lab/Homework"
+author: "MS 282"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+---
+
+
+```{r config, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, fig.align = 'center', 
+                      verbose = TRUE, message = FALSE)
+```
+
+# Homework: Hypothesis Testing for Simple Linear Regression 
+
+## Directions
+
+You are to perform a simple linear regression analysis for each question below. Please follow the hypothesis testing testing structure outlined in the lecture. **Specifically, I would like you to do the following for each question:**
+
+1. Perform some exploratory analysis of the data. You should include a graph to assess whether linear regression is appropriate and a sentence or two describing what you see; also compute and record the correlation coefficient for the two variables. 
+2. State the null and alternative hypotheses
+3. Check test assumptions as shown in class
+4. Compute the Test Statistic & Determine the p-value
+5. Draw a conclusion by:
+	- Checking to see if your model fit is significant
+	- Interpreting your $\beta_{1}$ coefficient
+	- Computing and interpreting a confidence interval for the $\beta_{1}$ coefficient
+	- Stating and interpreting the $R^{2}$ value
+
+Please place your answers and the code you used to produce them in a Word document or R Markdown file and upload the document to CourseConnect. 
+
+
+## 1) Distance of Cars from Cyclists
+
+Data set can be downloaded from [here](https://courses.aquinas.edu/mod/resource/view.php?id=103455) on CourseConnect.
+
+A study was undertaken to assess the amount of room motorists leave cyclists when passing them on a street with a bike lane. Michigan law mandates motorists leave at least 3 feet between their vehicle and a cyclist. Most avid cyclists -- including your instructor (who has been hit on a few of occasions) -- know this law is frequently violated.
+
+For each of ten streets with bike lanes, investigators measured the distance between the center line and a cyclist in the bike lane. They used photography to determine the distance between the cyclist and a passing car on those same ten streets, recording all distances in feet.
+
+Please fit and interpret a simple linear regression model that uses distance between the center line and a cyclist in the bike lane (`Center`) to predict distance between the cyclist and a passing car (`Car`).
+
+**Reference:** *Effects of bike lanes on driver and bicyclist behavior*, ASCE Transportation Eng. J., 1977, pages 243-256.
+
+
+## 2) Cancer Mortality near Hanford Reactor 
+
+Data set can be downloaded from [here](https://courses.aquinas.edu/mod/resource/view.php?id=103457) on CourseConnect.
+
+Since Word War II, plutonium for use in atomic weapons has been produced at an Atomic Energy Commission facility in Hanford, Washington. One of the major safety problems encountered there has been the storage of radioactive wastes. Over the years, significant quantities of these substances - including strontium 90 and cesium 137 - have leaked from their open-pit storage areas into the nearby Columbia River, which flows along the Washington-Oregon border, and eventually empties into the Pacific Ocean.
+
+To measure the health consequences of this contamination, an index of exposure was calculated for each of the nine Oregon counties having frontage on either the Columbia River or the Pacific Ocean. This particular index was based on several factors, including the county's stream distance from Hanford and the average distance of its population from any water frontage. The cancer mortality rate was also determined for each of these same counties.
+
+Please fit and interpret a linear regression model to see if there is a relationship between the index of exposure and cancer mortality. 
+
+Description of Variables:
+
+```
+County:		Name of county
+Exposure:	Index of exposure
+Mortality:	Cancer mortality per 100,000 man-years
+```
+
+**Reference:** Fadeley, R. C. (1965). *Oregon malignancy pattern physiographically related to Hanford, Washington, Radioisotope Storage.* Journal of Environmental Health 27, 883-897.
+
+
+
+
+
